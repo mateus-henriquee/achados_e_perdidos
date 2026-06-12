@@ -1,0 +1,24 @@
+/* ── LOGIN ── */
+  .login-screen {
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 300;
+  }
+  .login-card {
+    background: var(--surface); border-radius: 20px;
+    padding: 40px; width: 100%; max-width: 380px;
+    box-shadow: var(--shadow); border: 1px solid var(--border);
+  }
+  .login-card h2 { font-family: "Poppins", sans-serif;, serif; font-size: 1.8rem; margin-bottom: 4px; }
+  .login-card p { color: var(--ink-muted); font-size: 0.875rem; margin-bottom: 28px; }
+  .login-tabs {
+    display: flex; border-bottom: 1.5px solid var(--border); margin-bottom: 24px;
+  }
+  .login-tab {
+    flex: 1; padding: 10px; background: none; border: none;
+    font-family: inherit; font-size: 0.875rem; font-weight: 500; cursor: pointer;
+    color: var(--ink-muted); border-bottom: 2.5px solid transparent; margin-bottom: -1.5px;
+    transition: all .15s;
+  }
+  .login-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .login-hint { font-size: 0.78rem; color: var(--ink-muted); margin-top: 16px; text-align: center; }

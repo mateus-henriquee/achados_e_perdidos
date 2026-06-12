@@ -1,0 +1,22 @@
+/* ── HERO ── */
+  .hero {
+    padding: 56px 32px 32px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .hero h1 {
+    font-family: "Poppins", sans-serif;, serif;
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 10px;
+  }
+  .hero h1 em { font-style: italic; color: var(--accent); }
+  .hero p { color: var(--ink-muted); font-size: 1rem; max-width: 460px; line-height: 1.6; }
+  .hero-meta {
+    display: flex; gap: 24px; margin-top: 20px; flex-wrap: wrap;
+  }
+  .hero-stat { display: flex; flex-direction: column; }
+  .hero-stat strong { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.03em; }
+  .hero-stat span { font-size: 0.78rem; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.06em; }

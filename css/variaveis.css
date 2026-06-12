@@ -1,0 +1,15 @@
+:root {
+    --bg:#2c2c2a;
+    --surface:#1b1919;
+    --ink:#ffffff;
+    --ink-muted:#ffffff;
+    --accent: #dc2a64;
+    --accent-hover:#ff3176;
+    --danger: #E03B2D;
+    --success: #18A06B;
+    --border:#ff3478;
+    --tag-bg:#202020;
+    --tag-text: #dc2a64;
+    --radius: 14px;
+    --shadow: 0 2px 16px rgba(0,0,0,0.08);
+  }

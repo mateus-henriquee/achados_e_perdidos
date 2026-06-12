@@ -1,0 +1,40 @@
+ /* ── NAV ── */
+  nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .nav-logo span { font-family: "Poppins", sans-serif;, serif; font-style: italic; font-size: 1.3rem; }
+  .nav-logo .dot { color: var(--accent); }
+  .nav-actions { display: flex; align-items: center; gap: 12px; }
+  .btn-ghost {
+    background: none; border: 1.5px solid var(--border); color: var(--ink);
+    padding: 8px 18px; border-radius: 8px; cursor: pointer; font-size: 0.875rem;
+    font-family: nheriti; font-weight: 500; transition: all .15s;
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-primary {
+    background: var(--accent); color: #fff; border: none;
+    padding: 9px 20px; border-radius: 8px; cursor: pointer; font-size: 0.875rem;
+    font-family: inherit; font-weight: 600; transition: background .15s;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .badge-role {
+    font-size: 0.75rem; font-weight: 600; padding: 4px 10px; border-radius: 20px;
+    background: var(--tag-bg); color: var(--tag-text); letter-spacing: 0.03em;
+  }
