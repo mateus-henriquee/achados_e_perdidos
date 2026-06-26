@@ -1,0 +1,30 @@
+
+body {
+  --sb-track-color:rgb(36, 36, 35); --bg
+  --sb-thumb-color:; --accent
+  --sb-size: 12px;
+
+  
+}
+
+body::-webkit-scrollbar {
+  width: 12px;
+}
+
+body::-webkit-scrollbar-track {
+  background: rgb(36, 36, 35);
+  border-radius: 3px;
+}
+
+body::-webkit-scrollbar-thumb {
+  background: rgb(255, 50, 118);
+  border-radius: 3px;
+  border: 2px solid #232E33;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  body {
+    scrollbar-color: rgb(255, 50, 118)
+                     rgb(36, 36, 35);
+  }
+}
