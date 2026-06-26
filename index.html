@@ -6,17 +6,17 @@
 
 
 <!-- Links CSS -->
-<link rel="stylesheet" href="/css/variaveis.css">
 <link rel="stylesheet" href="/css/fontes.css">
+<link rel="stylesheet" href="/css/variaveis.css">
+<link rel="stylesheet" href="/css/login.css">
 <link rel="stylesheet" href="/css/nav.css">
 <link rel="stylesheet" href="/css/hero.css">
 <link rel="stylesheet" href="/css/filters.css">
 <link rel="stylesheet" href="/css/cards.css">
 <link rel="stylesheet" href="/css/modal.css">
-<link rel="stylesheet" href="/css/login.css">
 <link rel="stylesheet" href="/css/toast.css">
 <link rel="stylesheet" href="/css/employee.css">
-<link rel="stylesheet" href="/css/fontes.css">
+<link rel="stylesheet" href="/css/footer.css">
 
 
 <title>Achados & Perdidos</title>
@@ -27,41 +27,37 @@
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
     <h2>Achados & Perdidos</h2>
-    <p>Selecione como deseja entrar</p>
-    <div class="login-tabs">
-      <button class="login-tab active" onclick="switchLoginTab('aluno')">Sou Aluno</button>
-      <button class="login-tab" onclick="switchLoginTab('funcionario')">Funcionário</button>
-    </div>
+    <p>Acesso exclusivo para colaboradores FIAP</p>
 
-    <!-- Aluno -->
-    <div id="tabAluno">
-      <div class="form-group">
-        <label>Nome</label>
-        <input type="text" id="alunoNome" placeholder="Seu nome">
-      </div>
-      <button class="btn-primary" style="width:100%;padding:12px" onclick="loginAluno()">Entrar como Aluno</button>
-      <p class="login-hint">Alunos podem apenas visualizar os itens encontrados.</p>
+    <div class="form-group">
+      <label>Usuário</label>
+      <input type="text" id="empUser" placeholder="usuário corporativo">
     </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" id="empPass" placeholder="••••••" onkeydown="if(event.key==='Enter')loginFuncionario()">
+    </div>
+    <button class="btn-primary" style="width:100%;padding:12px" onclick="loginFuncionario()">Entrar</button>
 
-    <!-- Funcionário -->
-    <div id="tabFuncionario" style="display:none">
-      <div class="form-group">
-        <label>Usuário</label>
-        <input type="text" id="empUser" placeholder="funcionario" value="funcionario">
-      </div>
-      <div class="form-group">
-        <label>Senha</label>
-        <input type="password" id="empPass" placeholder="••••••" value="1234">
-      </div>
-      <button class="btn-primary" style="width:100%;padding:12px" onclick="loginFuncionario()">Entrar</button>
-      <p class="login-hint">Usuário: <strong>funcionario</strong> / Senha: <strong>1234</strong></p>
-    </div>
+    <div class="ms-divider"><span>ou</span></div>
+
+    <button class="btn-microsoft" onclick="loginMicrosoft()">
+      <svg width="20" height="20" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
+        <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
+        <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
+        <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
+      </svg>
+      <span>Entrar com a Microsoft</span>
+    </button>
+
+    <p class="login-hint">Apenas colaboradores autorizados da FIAP podem acessar este sistema.</p>
   </div>
 </div>
 
 <!-- MAIN APP -->
 <nav>
-  <div class="nav-logo"><span>Achados</span><span class="dot">&</span><span>Perdidos</span></div>
+  <div class="nav-logo"><img src="https://i0.wp.com/innovationweeksjc.com.br/wp-content/uploads/2024/08/Artboard-1.png?fit=800%2C378&ssl=1"></div>
   <div class="nav-actions">
     <span class="badge-role" id="roleLabel">—</span>
     <button class="btn-ghost" onclick="logout()">Sair</button>
@@ -130,7 +126,7 @@
       </div>
       <div class="detail-row">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        <span>Registrado por:</span><strong id="dFuncionario">—</strong>
+        <span>Encontrado por:</span><strong id="dEncontradoPor">—</strong>
       </div>
     </div>
   </div>
@@ -160,6 +156,11 @@
       <div class="form-group">
         <label>Descrição do item</label>
         <input type="text" id="fDesc" placeholder="Ex: Camiseta azul listrada, Fone Sony preto...">
+      </div>
+
+      <div class="form-group">
+        <label>Encontrado por</label>
+        <input type="text" id="fEncontradoPor" placeholder="Nome do inspetor/colaborador que encontrou">
       </div>
 
       <div class="form-row">
@@ -215,6 +216,26 @@
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-logo">
+    <img src="https://avatars.githubusercontent.com/u/99336388?v=4" alt="FIAP" onerror="this.style.display='none'">
+  </div>
+  <div class="footer-credit">© Feito e desenvolvido por: Mateus Henrique Leccese da Silva</div>
+  <div class="footer-social">
+    <a href="https://github.com/mateus-henriquee" target="_blank" rel="noopener" aria-label="GitHub" class="social-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.11.82-.26.82-.577 0-.285-.01-1.04-.015-2.04-3.338.725-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.09-.745.083-.73.083-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.776.42-1.305.763-1.605-2.665-.303-5.467-1.332-5.467-5.93 0-1.31.468-2.382 1.235-3.222-.123-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.3 1.23A11.5 11.5 0 0112 5.803c1.02.005 2.045.137 3.003.403 2.29-1.552 3.297-1.23 3.297-1.23.653 1.652.24 2.873.117 3.176.77.84 1.233 1.912 1.233 3.222 0 4.61-2.807 5.624-5.48 5.92.43.37.823 1.102.823 2.222 0 1.605-.015 2.896-.015 3.286 0 .32.217.694.825.576C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z"/></svg>
+    </a>
+    <a href="https://www.linkedin.com/in/devmateus-henriquee" target="_blank" rel="noopener" aria-label="LinkedIn" class="social-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.024-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.95v5.66H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.38-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.07 2.07 0 11.01-4.14 2.07 2.07 0 01-.01 4.14zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.8 0 0 .78 0 1.75v20.5C0 23.22.8 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.75V1.75C24 .78 23.2 0 22.22 0z"/></svg>
+    </a>
+    <a href="https://www.instagram.com/mat.hlc" target="_blank" rel="noopener" aria-label="Instagram" class="social-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.16c3.2 0 3.58.012 4.85.07 1.17.054 1.8.246 2.22.41.56.217.96.477 1.38.896.42.42.68.82.896 1.38.163.42.354 1.05.41 2.22.058 1.27.07 1.65.07 4.85s-.012 3.58-.07 4.85c-.054 1.17-.246 1.8-.41 2.22-.217.56-.477.96-.896 1.38-.42.42-.82.68-1.38.896-.42.163-1.05.354-2.22.41-1.27.058-1.65.07-4.85.07s-3.58-.012-4.85-.07c-1.17-.054-1.8-.246-2.22-.41-.56-.217-.96-.477-1.38-.896-.42-.42-.68-.82-.896-1.38-.163-.42-.354-1.05-.41-2.22C2.012 15.58 2 15.2 2 12s.012-3.58.07-4.85c.054-1.17.246-1.8.41-2.22.217-.56.477-.96.896-1.38.42-.42.82-.68 1.38-.896.42-.163 1.05-.354 2.22-.41C8.42 2.172 8.8 2.16 12 2.16zm0-2.16C8.74 0 8.33.014 7.05.072 5.78.13 4.9.34 4.14.63c-.79.31-1.46.72-2.13 1.39C1.34 2.69.93 3.36.62 4.15.34 4.9.13 5.78.072 7.05.014 8.33 0 8.74 0 12s.014 3.67.072 4.95c.058 1.27.27 2.15.56 2.9.31.79.72 1.46 1.39 2.13.67.67 1.34 1.08 2.13 1.39.75.29 1.63.5 2.9.56C8.33 23.986 8.74 24 12 24s3.67-.014 4.95-.072c1.27-.058 2.15-.27 2.9-.56.79-.31 1.46-.72 2.13-1.39.67-.67 1.08-1.34 1.39-2.13.29-.75.5-1.63.56-2.9.058-1.28.072-1.69.072-4.95s-.014-3.67-.072-4.95c-.058-1.27-.27-2.15-.56-2.9-.31-.79-.72-1.46-1.39-2.13C21.31 1.34 20.64.93 19.85.62c-.75-.29-1.63-.5-2.9-.56C15.67.014 15.26 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+    </a>
+  </div>
+</footer>
+
 <script type="module" src="/js/script.js"></script>
 </body>
 </html>

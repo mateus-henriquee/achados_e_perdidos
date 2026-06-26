@@ -11,16 +11,12 @@
     top: 0;
     z-index: 100;
   }
-  .nav-logo {
+  .nav-logo img{
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 1.1rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    width: 20%;
   }
-  .nav-logo span { font-family: "Poppins", sans-serif;, serif; font-style: italic; font-size: 1.3rem; }
-  .nav-logo .dot { color: var(--accent); }
   .nav-actions { display: flex; align-items: center; gap: 12px; }
   .btn-ghost {
     background: none; border: 1.5px solid var(--border); color: var(--ink);

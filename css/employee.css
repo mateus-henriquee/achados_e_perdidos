@@ -1,29 +1,37 @@
- /* ── EMPLOYEE ACTIONS ── */
+/* ── EMPLOYEE ACTIONS ── */
   .fab {
     position: fixed; bottom: 32px; right: 32px;
     background: var(--accent); color: #fff;
     border: none; border-radius: 99px; padding: 14px 24px;
     font-family: inherit; font-size: 0.95rem; font-weight: 600;
-    cursor: pointer; box-shadow: 0 4px 20px rgba(45,91,255,0.4);
+    cursor: pointer; box-shadow: 0 4px 20px var(--accent);
     display: flex; align-items: center; gap: 8px;
-    transition: all .2s; z-index: 50;
+    transition: background .2s, transform .2s; z-index: 50;
   }
   .fab:hover { background: var(--accent-hover); transform: scale(1.04); }
 
+  /* Quando o footer entra na viewport, o FAB "para" de seguir a tela:
+     vira absolute e fica ancorado no fim do conteúdo (acima do footer),
+     em vez de flutuar por cima dele. */
+  .fab.fab-docked {
+    position: absolute;
+    bottom: auto;
+    top: var(--fab-dock-top, auto);
+  }
+
   .card-actions { display: flex; gap: 8px; margin-top: 12px; }
   .btn-danger {
-    background: none; border: 1.5px solid rgb(233, 56, 56); color: var(--danger);
+    background: none; border: 1.5px solid rgb(255, 0, 0); color: var(--danger);
     padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.78rem;
     font-family: inherit; font-weight: 600; transition: all .15s; flex: 1;
   }
-  .btn-danger:hover { background: #FEF2F2; }
+  .btn-danger:hover { background: rgb(78, 22, 22); }
   .btn-resolve {
-    background: none; border: 1.5px solid rgb(115, 233, 178); color: var(--success);
+    background: none; border: 1.5px solid rgb(0, 255, 136); color: var(--success);
     padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.78rem;
     font-family: inherit; font-weight: 600; transition: all .15s; flex: 1;
   }
-  .btn-resolve:hover,
-  .btn-danger:hover { background:rgba(44, 44, 42, 0.73); }
+  .btn-resolve:hover { background:rgb(22, 78, 52); }
 
   .empty-state {
     grid-column: 1/-1; text-align: center; padding: 64px 20px;
@@ -39,6 +47,7 @@
   }
   .status-resolved { background: #D1FAE5; color: #065F46; }
   .status-open { background: #FEF3C7; color: #92400E; }
+
 
   @media (max-width: 600px) {
     nav { padding: 0 16px; }

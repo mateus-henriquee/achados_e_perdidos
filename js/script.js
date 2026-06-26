@@ -1,3 +1,4 @@
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -38,21 +39,6 @@ onSnapshot(itemsQuery, (snapshot) => {
 });
 
 // ── AUTH ──
-function switchLoginTab(tab) {
-  document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tabAluno').style.display = tab === 'aluno' ? '' : 'none';
-  document.getElementById('tabFuncionario').style.display = tab === 'funcionario' ? '' : 'none';
-  event.target.classList.add('active');
-}
-
-function loginAluno() {
-  const nome = document.getElementById('alunoNome').value.trim();
-  if (!nome) { showToast('Digite seu nome para entrar.'); return; }
-  currentUser = nome;
-  currentRole = 'aluno';
-  enterApp();
-}
-
 function loginFuncionario() {
   const user = document.getElementById('empUser').value.trim();
   const pass = document.getElementById('empPass').value;
@@ -65,12 +51,16 @@ function loginFuncionario() {
   }
 }
 
+function loginMicrosoft() {
+  // Integração com Microsoft Entra ID (Azure AD) requer registro do app
+  // no portal Azure e configuração de OAuth. Placeholder funcional por enquanto.
+  showToast('Login com Microsoft ainda não configurado. Use usuário e senha.');
+}
+
 function enterApp() {
   document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('roleLabel').textContent =
-    currentRole === 'funcionario' ? '🔑 Funcionário' : '🎓 Aluno';
-  document.getElementById('fabBtn').style.display =
-    currentRole === 'funcionario' ? 'flex' : 'none';
+  document.getElementById('roleLabel').textContent = '🔑 Colaborador FIAP';
+  document.getElementById('fabBtn').style.display = 'flex';
   setDefaults();
   renderCards();
   updateStats();
@@ -163,7 +153,7 @@ function openDetail(id) {
   document.getElementById('dPiso').textContent = it.piso;
   document.getElementById('dHora').textContent = it.horario;
   document.getElementById('dData').textContent = formatDate(it.data);
-  document.getElementById('dFuncionario').textContent = it.funcionario;
+  document.getElementById('dEncontradoPor').textContent = it.encontradoPor || '—';
 
   const descRow = document.getElementById('dDescRow');
   if (it.observacoes) {
@@ -237,6 +227,7 @@ function clearPhoto() {
 
 async function saveItem() {
   const desc = document.getElementById('fDesc').value.trim();
+  const encontradoPor = document.getElementById('fEncontradoPor').value.trim();
   const cat  = document.getElementById('fCat').value;
   const piso = document.getElementById('fPiso').value;
   const hora = document.getElementById('fHora').value;
@@ -259,6 +250,7 @@ async function saveItem() {
 
     await addDoc(collection(db, 'itens'), {
       descricao: desc,
+      encontradoPor: encontradoPor || null,
       categoria: cat,
       piso,
       horario: hora,
@@ -288,6 +280,7 @@ async function saveItem() {
 
 function resetForm() {
   document.getElementById('fDesc').value = '';
+  document.getElementById('fEncontradoPor').value = '';
   document.getElementById('fCat').value = '';
   document.getElementById('fPiso').value = '';
   document.getElementById('fObs').value = '';
@@ -316,6 +309,59 @@ async function deleteItem(id) {
   }
 }
 
+// ── FAB "para de seguir" a tela ao chegar no footer ──
+// Enquanto o footer não está visível, o botão fica fixed (flutuando no canto).
+// Quando o footer entra na viewport, o botão vira absolute e fica ancorado
+// logo acima do footer, sem invadi-lo. Ao subir a página, volta para fixed.
+function setupFabDocking() {
+  const fab = document.getElementById('fabBtn');
+  const footer = document.querySelector('.site-footer');
+  if (!fab || !footer) return;
+
+  function dockFab() {
+    // Lê a margem real definida no CSS (32px no desktop, 20px no mobile)
+    // em vez de usar um valor fixo, para acompanhar o media query.
+    const wasDocked = fab.classList.contains('fab-docked');
+    if (wasDocked) fab.classList.remove('fab-docked'); // garante leitura do estilo "fixed" original
+    const fabMargin = parseFloat(getComputedStyle(fab).bottom) || 32;
+    if (wasDocked) fab.classList.add('fab-docked');
+
+    const footerTop = footer.getBoundingClientRect().top + window.scrollY;
+    const dockTop = footerTop - fab.offsetHeight - fabMargin;
+    fab.style.setProperty('--fab-dock-top', `${dockTop}px`);
+    fab.classList.add('fab-docked');
+  }
+
+  function undockFab() {
+    fab.classList.remove('fab-docked');
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        dockFab();
+      } else {
+        undockFab();
+      }
+    });
+  }, { rootMargin: '0px 0px 0px 0px', threshold: 0 });
+
+  observer.observe(footer);
+
+  // Recalcula a posição de ancoragem se a janela for redimensionada
+  // enquanto o botão estiver "docked".
+  window.addEventListener('resize', () => {
+    if (fab.classList.contains('fab-docked')) dockFab();
+  });
+}
+
+// inicia o docking do FAB assim que o DOM estiver pronto
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', setupFabDocking);
+} else {
+  setupFabDocking();
+}
+
 // ── TOAST ──
 let toastTimer;
 function showToast(msg, type) {
@@ -327,9 +373,8 @@ function showToast(msg, type) {
 }
 
 // expõe funções no escopo global (necessário pois o script agora é type="module")
-window.switchLoginTab = switchLoginTab;
-window.loginAluno = loginAluno;
 window.loginFuncionario = loginFuncionario;
+window.loginMicrosoft = loginMicrosoft;
 window.logout = logout;
 window.renderCards = renderCards;
 window.setFilter = setFilter;
