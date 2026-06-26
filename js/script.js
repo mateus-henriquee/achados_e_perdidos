@@ -1,15 +1,41 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC258-IU_Yy3ccyJtPGjRmyrcRx9_j4nWg",
+  authDomain: "achadosperdidos-8db77.firebaseapp.com",
+  projectId: "achadosperdidos-8db77",
+  storageBucket: "achadosperdidos-8db77.firebasestorage.app",
+  messagingSenderId: "376327013912",
+  appId: "1:376327013912:web:bb19e8656de8b89edd256d"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 // ── STATE ──
 let currentUser = null;
 let currentRole = null;
 let activeFilter = 'Todos';
-let currentPhotoBase64 = null;
-let items = JSON.parse(localStorage.getItem('items') || '[]');
+let currentPhotoFile = null;
+let items = [];
 
 // emoji fallbacks per category
 const catEmoji = {
   'Eletrônico': '📱', 'Roupa': '👕', 'Acessório': '👜',
   'Documento': '📄', 'Outro': '📦'
 };
+
+// ── FIREBASE LISTENER (tempo real, sincroniza entre todos os computadores) ──
+const itemsQuery = query(collection(db, 'itens'), orderBy('criadoEm', 'desc'));
+onSnapshot(itemsQuery, (snapshot) => {
+  items = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  renderCards();
+  updateStats();
+}, (err) => {
+  console.error(err);
+  showToast('Erro ao conectar ao banco de dados.');
+});
 
 // ── AUTH ──
 function switchLoginTab(tab) {
@@ -64,10 +90,11 @@ function setDefaults() {
 // ── RENDER ──
 function renderCards() {
   const grid = document.getElementById('itemsGrid');
+  if (!grid) return;
   const q = document.getElementById('searchInput').value.toLowerCase();
   const filtered = items.filter(it => {
     const matchCat = activeFilter === 'Todos' || it.categoria === activeFilter;
-    const matchQ = !q || it.descricao.toLowerCase().includes(q) || it.categoria.toLowerCase().includes(q);
+    const matchQ = !q || (it.descricao || '').toLowerCase().includes(q) || (it.categoria || '').toLowerCase().includes(q);
     return matchCat && matchQ;
   });
 
@@ -80,13 +107,13 @@ function renderCards() {
     const statusBadge = it.resolvido
       ? `<span class="status-badge status-resolved">Devolvido</span>`
       : `<span class="status-badge status-open">Aguardando</span>`;
-    const imgContent = it.foto
-      ? `<img src="${it.foto}" alt="${it.descricao}">`
+    const imgContent = it.fotoURL
+      ? `<img src="${it.fotoURL}" alt="${it.descricao}" loading="lazy">`
       : catEmoji[it.categoria] || '📦';
 
     const empActions = currentRole === 'funcionario' ? `
       <div class="card-actions">
-        <button class="btn-resolve" onclick="event.stopPropagation();toggleResolve('${it.id}')">
+        <button class="btn-resolve" onclick="event.stopPropagation();toggleResolve('${it.id}', ${!!it.resolvido})">
           ${it.resolvido ? 'Reabrir' : '✓ Devolvido'}
         </button>
         <button class="btn-danger" onclick="event.stopPropagation();deleteItem('${it.id}')">Remover</button>
@@ -147,8 +174,8 @@ function openDetail(id) {
   }
 
   const wrap = document.getElementById('dImgWrap');
-  wrap.innerHTML = it.foto
-    ? `<img src="${it.foto}" alt="${it.descricao}" style="width:100%;height:100%;object-fit:cover">`
+  wrap.innerHTML = it.fotoURL
+    ? `<img src="${it.fotoURL}" alt="${it.descricao}" style="width:100%;height:100%;object-fit:cover">`
     : `<span style="font-size:5rem">${catEmoji[it.categoria] || '📦'}</span>`;
 
   document.getElementById('detailOverlay').classList.add('open');
@@ -175,59 +202,88 @@ function closeAddModal() {
 function handlePhoto(e) {
   const file = e.target.files[0];
   if (!file) return;
+
+  // Comprime a imagem no navegador (max 800px de largura, qualidade 0.7)
+  // para caber no limite de 1MB por documento do Firestore.
+  const img = new Image();
   const reader = new FileReader();
   reader.onload = ev => {
-    currentPhotoBase64 = ev.target.result;
-    document.getElementById('previewImg').src = currentPhotoBase64;
-    document.getElementById('uploadArea').style.display = 'none';
-    document.getElementById('uploadPreview').style.display = 'block';
+    img.onload = () => {
+      const maxW = 800;
+      const scale = Math.min(1, maxW / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const compressed = canvas.toDataURL('image/jpeg', 0.7);
+
+      currentPhotoFile = compressed;
+      document.getElementById('previewImg').src = compressed;
+      document.getElementById('uploadArea').style.display = 'none';
+      document.getElementById('uploadPreview').style.display = 'block';
+    };
+    img.src = ev.target.result;
   };
   reader.readAsDataURL(file);
 }
 
 function clearPhoto() {
-  currentPhotoBase64 = null;
+  currentPhotoFile = null;
   document.getElementById('fileInput').value = '';
   document.getElementById('uploadArea').style.display = '';
   document.getElementById('uploadPreview').style.display = 'none';
 }
 
-function saveItem() {
+async function saveItem() {
   const desc = document.getElementById('fDesc').value.trim();
   const cat  = document.getElementById('fCat').value;
   const piso = document.getElementById('fPiso').value;
   const hora = document.getElementById('fHora').value;
   const data = document.getElementById('fData').value;
-  const nome = document.getElementById('fNome').value;
   const obs  = document.getElementById('fObs').value.trim();
 
-  if (!desc || !cat || !piso || !hora || !data || !nome) {
+  if (!desc || !cat || !piso || !hora || !data) {
     showToast('Preencha todos os campos obrigatórios.');
     return;
   }
 
-  const item = {
-    id: Date.now().toString(),
-    descricao: desc,
-    categoria: cat,
-    piso,
-    horario: hora,
-    data,
-    nome,
-    observacoes: obs,
-    foto: currentPhotoBase64,
-    resolvido: false,
-    funcionario: currentUser,
-    criadoEm: new Date().toISOString()
-  };
+  const saveBtn = document.querySelector('#addOverlay .btn-primary');
+  const originalText = saveBtn.textContent;
+  saveBtn.textContent = 'Salvando...';
+  saveBtn.disabled = true;
 
-  items.unshift(item);
-  saveItems();
-  renderCards();
-  updateStats();
-  closeAddModal();
-  resetForm();
-  showToast('Item cadastrado com sucesso!', 'success');
+  try {
+    // currentPhotoFile já é o base64 comprimido (ou null)
+    const fotoURL = currentPhotoFile || null;
+
+    await addDoc(collection(db, 'itens'), {
+      descricao: desc,
+      categoria: cat,
+      piso,
+      horario: hora,
+      data,
+      observacoes: obs,
+      fotoURL,
+      resolvido: false,
+      funcionario: currentUser,
+      criadoEm: serverTimestamp()
+    });
+
+    closeAddModal();
+    resetForm();
+    showToast('Item cadastrado com sucesso!', 'success');
+  } catch (err) {
+    console.error(err);
+    if (err.message && err.message.includes('1048487')) {
+      showToast('Foto muito grande. Tente uma foto menor.');
+    } else {
+      showToast('Erro ao salvar. Verifique sua conexão.');
+    }
+  } finally {
+    saveBtn.textContent = originalText;
+    saveBtn.disabled = false;
+  }
 }
 
 function resetForm() {
@@ -239,27 +295,25 @@ function resetForm() {
   setDefaults();
 }
 
-function toggleResolve(id) {
-  const it = items.find(i => i.id === id);
-  if (!it) return;
-  it.resolvido = !it.resolvido;
-  saveItems();
-  renderCards();
-  updateStats();
-  showToast(it.resolvido ? 'Marcado como devolvido.' : 'Reaberto.', it.resolvido ? 'success' : '');
+async function toggleResolve(id, resolvidoAtual) {
+  try {
+    await updateDoc(doc(db, 'itens', id), { resolvido: !resolvidoAtual });
+    showToast(!resolvidoAtual ? 'Marcado como devolvido.' : 'Reaberto.', !resolvidoAtual ? 'success' : '');
+  } catch (err) {
+    console.error(err);
+    showToast('Erro ao atualizar item.');
+  }
 }
 
-function deleteItem(id) {
+async function deleteItem(id) {
   if (!confirm('Remover este item do sistema?')) return;
-  items = items.filter(i => i.id !== id);
-  saveItems();
-  renderCards();
-  updateStats();
-  showToast('Item removido.');
-}
-
-function saveItems() {
-  localStorage.setItem('items', JSON.stringify(items));
+  try {
+    await deleteDoc(doc(db, 'itens', id));
+    showToast('Item removido.');
+  } catch (err) {
+    console.error(err);
+    showToast('Erro ao remover item.');
+  }
 }
 
 // ── TOAST ──
@@ -272,15 +326,21 @@ function showToast(msg, type) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// seed demo data if empty
-if (items.length === 0) {
-  const demos = [
-    { id:'d1', descricao:'Fone de ouvido Bluetooth', categoria:'Eletrônico', piso:'2º Andar', horario:'10:30', data:'2025-06-10', observacoes:'Preto, sem fio, sem case', foto:null, resolvido:false, funcionario:'Inspetor João' },
-    { id:'d2', descricao:'Jaqueta cinza com zíper', categoria:'Roupa', piso:'Térreo', horario:'07:45', data:'2025-06-11', observacoes:'Tamanho M, marca não identificada', foto:null, resolvido:false, funcionario:'Inspetor Maria' },
-    { id:'d3', descricao:'Carteira preta masculina', categoria:'Acessório', piso:'1º Andar', horario:'13:00', data:'2025-06-09', observacoes:'Contém alguns cartões', foto:null, resolvido:true, funcionario:'Inspetor João' },
-    { id:'d4', descricao:'Documento RG', categoria:'Documento', piso:'Pátio', horario:'12:20', data:'2025-06-12', observacoes:'', foto:null, resolvido:false, funcionario:'Inspetor Ana' },
-    { id:'d5', descricao:'Óculos de grau armação azul', categoria:'Acessório', piso:'3º Andar', horario:'08:15', data:'2025-06-12', observacoes:'', foto:null, resolvido:false, funcionario:'Inspetor Maria' },
-  ];
-  items = demos;
-  saveItems();
-}
+// expõe funções no escopo global (necessário pois o script agora é type="module")
+window.switchLoginTab = switchLoginTab;
+window.loginAluno = loginAluno;
+window.loginFuncionario = loginFuncionario;
+window.logout = logout;
+window.renderCards = renderCards;
+window.setFilter = setFilter;
+window.openDetail = openDetail;
+window.closeDetail = closeDetail;
+window.closeDetailModal = closeDetailModal;
+window.openAddModal = openAddModal;
+window.closeAdd = closeAdd;
+window.closeAddModal = closeAddModal;
+window.handlePhoto = handlePhoto;
+window.clearPhoto = clearPhoto;
+window.saveItem = saveItem;
+window.toggleResolve = toggleResolve;
+window.deleteItem = deleteItem;
