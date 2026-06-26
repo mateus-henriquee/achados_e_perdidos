@@ -17,14 +17,14 @@ body::-webkit-scrollbar-track {
 }
 
 body::-webkit-scrollbar-thumb {
-  background: rgb(255, 50, 118);
+  background: rgb(255, 40, 112);
   border-radius: 3px;
   border: 2px solid #232E33;
 }
 
 @supports not selector(::-webkit-scrollbar) {
   body {
-    scrollbar-color: rgb(255, 50, 118)
+    scrollbar-color: rgb(255, 40, 112)
                      rgb(36, 36, 35);
   }
 }
